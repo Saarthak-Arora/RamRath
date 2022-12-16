@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RamRath</title>
+</head>
+<style>
+    *{
+      margin: 0;
+      padding: 0; 
+      background-color: rgb(43, 69, 70); 
+    }
+    /* body{
+        background-image: url("");
+        background-repeat: no-repeat;
+        background-size: cover;
+    } */
+    .scoreD, .start{
+        margin: 4px;
+        width: 200px;
+        height: 100px;
+        background-color: yellow;
+        /* position: absolute; */
+    }
+    .score{
+        color: white;
+        font-size: 20px;
+    }
+    .road{
+        width:400px;
+        height: 100vh;
+        background-color: black;
+        margin: auto;
+        /* overflow: hidden; */
+        margin-top: -218px;
+        /* position: absolute; */
+        border-left: 10px dashed white;
+        border-right:10px dashed white ;
+    
+        
+    }
+    .car{
+        z-index: 1;
+        height: 50px;
+        width: 50px;
+        background-color: yellow;
+        /* background-image: url('https://www.paypalobjects.com/en_GB/i/scr/pixel.gif'); */
+        position: absolute;
+        top:80vh;
+        box-shadow: 0px 10px 5px #888, 0px -30px 20px #888;
+        /* background-repeat: no-repeat; */
+        /* background-size: cover; */
+        border-radius: 0.8rem;
+
+    
+    }
+    .pcars{
+        z-index: 1;
+        height: 50px;
+        width: 50px;
+        position: absolute;
+        box-shadow: 0px 10px 5px #888, 0px -30px 20px #888;
+        border-radius: 0.8rem;
+        /* position: absolute; */
+
+    }
+    .lines{
+        height: 100px;
+        width: 20px;
+        background-color: white;
+        position: absolute;
+        margin-left: 190px;
+        margin-top: 50px;
+       
+    }
+</style>
+<body>
+    <div class="scoreD">Score : <span class="score">0</span></div>
+    <div class="start"> Start</div>
+    <div class="road">
+    </div>
+</body>
+<script>
+
+    let start = false;
+    let score = document.querySelector('.score');
+    let road = document.querySelector('.road');
+    let st = document.querySelector('.start');
+
+
+
+     
+   
+
+
+
+    // keys
+    let keys = {
+        ArrowUp : false,
+        ArrowDown :  false,
+        ArrowLeft: false,
+        ArrowRight : false
+    }
+
+    
+    const keyPressDown = (event) =>{
+        event.preventDefault();
+        keys[event.key] = true;
+        console.log(keys);
+    }
+
+    const keyPressUp = (event) =>{
+        event.preventDefault();
+        keys[event.key] = false;
+
+    }
+    
+    document.addEventListener('keydown',keyPressDown);
+    document.addEventListener('keyup',keyPressUp);
+
+
+    // class player{
+    //     constructor(speed,score,x,y){
+    //         this.speed = speed;
+    //         this.score = score;
+    //         this.ready = true;
+    //         this.x = x;
+    //         this.y = y;
+
+    //     }
+
+    // }
+
+    const player = { speed : 5,
+            score : 0,
+            ready : false,
+            score : 0,
+           };
+
+
+    const moveLines = () =>{
+        let lines = document.querySelectorAll('.lines');
+        const roadb = road.getBoundingClientRect();
+        lines.forEach((ele)=>{
+            if(ele.y >= 550){
+                ele.y -= 650;
+            }
+
+            ele.y += player.speed;
+            
+            ele.style.top = ele.y + "px";
+        })
+        
+    }
+
+    let collide = (car, ele) => {
+       
+        let cp = car.getBoundingClientRect();
+        let pp = ele.getBoundingClientRect();
+
+        return !((cp.top >= pp.bottom) || (cp.bottom < pp.top) || (cp.right < pp.left) || (cp.left > pp.right));
+    }
+
+    const moveCars = (car) =>{
+        let cars = document.querySelectorAll('.pcars');
+        const roadb = road.getBoundingClientRect();
+        cars.forEach((ele)=>{
+            if(collide(car,ele)){
+                player.ready = false;
+            };
+            if(ele.y >= 600){
+                ele.y = -300;
+                ele.style.left= Math.floor(Math.random()*350)+400 ; + "px";
+            }
+            
+            ele.style.left= Math.floor(Math.random()*350)+400 ; + "px";
+            
+            ele.y +=  player.speed;
+            ele.style.top = ele.y + "px";
+            //  ele.style.marginTop += '200px'
+
+
+        })
+        
+    }
+
+
+   
+    const playGame = () =>{
+        const roadconf = road.getBoundingClientRect();
+        const car = document.querySelector('.car');
+        if(player.ready){
+            moveLines();
+            moveCars(car);
+            if(keys.ArrowUp && player.y > (roadconf.top + 100) ){player.y -= player.speed ;};
+            if(keys.ArrowDown  && player.y < (roadconf.bottom - 100)){player.y += player.speed};
+            if(keys.ArrowLeft  && player.x >= roadconf.left){player.x -= player.speed};
+            if(keys.ArrowRight && player.x < (roadconf.right - 100)){player.x += player.speed};
+
+            car.style.top = player.y + "px";
+            car.style.left = player.x + "px";
+            player.score++;
+            score.innerHTML = player.score;
+            requestAnimationFrame(playGame);   
+        }else{
+            road.removeChild(car)
+            // car.style.display ='none';
+             let pcar = document.querySelectorAll('.pcars');
+             let lines = document.querySelectorAll('.lines')
+             for(let i =0;i < pcar.length;i++){
+                road.removeChild(pcar[i]);
+             }
+             for(let i =0;i < lines.length;i++){
+                road.removeChild(lines[i]);
+             }
+            player.score =0;
+            st.innerHTML = "start again";
+        }
+
+        
+        
+    }
+
+
+    const gameStart = () =>{
+        const pi = document.createElement('div');
+        pi.setAttribute('class','car');
+        pi.style.margin = 'auto';
+        road.appendChild(pi);
+
+        requestAnimationFrame(playGame); 
+
+
+
+        for(let i = 0 ; i < 5;i++){
+            let lines = document.createElement('div');
+            lines.setAttribute('class','lines');
+            lines.y = i*200;
+            lines.style.top = lines.y + "px"; 
+            road.appendChild(lines);
+        }
+
+        for(let i = 1 ; i < 5;i++){
+            let pcars = document.createElement('div');
+            pcars.setAttribute('class','pcars');
+            road.appendChild(pcars);
+            pcars.y = ((i)*100) ;
+            pcars.style.top = pcars.y + "px"; 
+            pcars.style.backgroundColor = 'orange';
+            pcars.style.left =   Math.floor(Math.random()*350)+600 + "px"; 
+            
+
+        }
+        
+        // document.querySelector('.start').style.display="none";
+        player.y = pi.offsetTop;
+        player.x = pi.offsetLeft;
+        player.ready =true;
+
+        // let p = new player(5,0,pi.offsetLeft,pi.offsetTop);
+    }
+
+   document.querySelector('.start').addEventListener('click',gameStart);
+
+</script>
+</html>
